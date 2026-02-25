@@ -1,0 +1,7 @@
+datasets==3.6.0
+SQLAlchemy==2.0.46
+pytest==9.0.2
+fastapi==0.132.0
+uvicorn[standard]==0.41.0
+groq==1.0.0
+python-dotenv==1.2.0

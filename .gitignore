@@ -1,0 +1,39 @@
+# ─── Environment ───────────────────────
+.env
+
+# ─── Python ────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# ─── Testing ───────────────────────────
+.pytest_cache/
+.pytest-tmp/
+pytest_tmp/
+.tmp/
+htmlcov/
+.coverage
+
+# ─── Virtual Environments ─────────────
+.venv/
+venv/
+
+# ─── Linting / Type Checking ──────────
+.mypy_cache/
+.ruff_cache/
+
+# ─── Database ─────────────────────────
+zomato_restaurants.db
+
+# ─── IDE ──────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ─── OS ───────────────────────────────
+.DS_Store
+Thumbs.db

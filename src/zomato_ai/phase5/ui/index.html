@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Zomato AI — Smart Restaurant Recommendations</title>
+    <meta name="description" content="Get AI-powered restaurant recommendations based on your preferences. Powered by Groq LLM and the Zomato dataset." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      /* ─── Design Tokens ────────────────────────────────── */
+      :root {
+        --bg-deep: #06090f;
+        --bg-surface: rgba(255, 255, 255, 0.04);
+        --bg-card: rgba(255, 255, 255, 0.06);
+        --bg-input: rgba(0, 0, 0, 0.35);
+        --border: rgba(255, 255, 255, 0.08);
+        --border-hover: rgba(255, 255, 255, 0.18);
+        --text-primary: #eaf0ff;
+        --text-secondary: rgba(234, 240, 255, 0.65);
+        --text-muted: rgba(234, 240, 255, 0.45);
+        --accent: #6C63FF;
+        --accent-glow: rgba(108, 99, 255, 0.35);
+        --accent-2: #FF6584;
+        --gradient-hero: linear-gradient(135deg, #6C63FF 0%, #FF6584 50%, #FFA751 100%);
+        --gradient-btn: linear-gradient(135deg, #6C63FF 0%, #8B5CF6 100%);
+        --gradient-btn-hover: linear-gradient(135deg, #7b73ff 0%, #9b6ef6 100%);
+        --radius: 16px;
+        --radius-sm: 10px;
+        --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+        --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+      }
+
+      /* ─── Reset ─────────────────────────────────────────── */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      body {
+        background: var(--bg-deep);
+        color: var(--text-primary);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ─── Background Gradient Blobs ─────────────────────── */
+      body::before, body::after {
+        content: '';
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(120px);
+        opacity: 0.12;
+        pointer-events: none;
+        z-index: 0;
+      }
+      body::before {
+        width: 600px; height: 600px;
+        background: #6C63FF;
+        top: -200px; left: -100px;
+      }
+      body::after {
+        width: 500px; height: 500px;
+        background: #FF6584;
+        bottom: -150px; right: -100px;
+      }
+
+      /* ─── Layout ────────────────────────────────────────── */
+      .container {
+        position: relative;
+        z-index: 1;
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      /* ─── Hero Section ──────────────────────────────────── */
+      .hero {
+        padding: 52px 0 32px;
+        text-align: center;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--accent);
+        background: rgba(108, 99, 255, 0.12);
+        border: 1px solid rgba(108, 99, 255, 0.2);
+        border-radius: 999px;
+        padding: 6px 14px;
+        margin-bottom: 18px;
+      }
+      .hero-badge .dot {
+        width: 6px; height: 6px;
+        background: var(--accent);
+        border-radius: 50%;
+        animation: pulse 2s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(0.8); }
+      }
+      .hero h1 {
+        font-size: clamp(28px, 5vw, 42px);
+        font-weight: 800;
+        line-height: 1.15;
+        margin-bottom: 12px;
+      }
+      .hero h1 .gradient-text {
+        background: var(--gradient-hero);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .hero p {
+        color: var(--text-secondary);
+        font-size: 16px;
+        max-width: 520px;
+        margin: 0 auto;
+        line-height: 1.6;
+      }
+
+      /* ─── Glassmorphism Card ────────────────────────────── */
+      .glass-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 28px;
+        backdrop-filter: blur(20px);
+        box-shadow: var(--shadow-card);
+        transition: border-color var(--transition);
+      }
+      .glass-card:hover {
+        border-color: var(--border-hover);
+      }
+
+      /* ─── Form ──────────────────────────────────────────── */
+      .form-section {
+        margin-bottom: 28px;
+      }
+      .form-section .section-title {
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-muted);
+        margin-bottom: 14px;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 14px;
+      }
+      .col-6  { grid-column: span 6; }
+      .col-4  { grid-column: span 4; }
+      .col-3  { grid-column: span 3; }
+      .col-12 { grid-column: span 12; }
+
+      .field label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+      }
+      .field input {
+        width: 100%;
+        padding: 11px 14px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: var(--bg-input);
+        color: var(--text-primary);
+        font-family: inherit;
+        font-size: 14px;
+        outline: none;
+        transition: border-color var(--transition), box-shadow var(--transition);
+      }
+      .field input::placeholder { color: var(--text-muted); }
+      .field input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-glow);
+      }
+
+      /* ─── Button ────────────────────────────────────────── */
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 28px;
+        border: none;
+        border-radius: 12px;
+        background: var(--gradient-btn);
+        color: #fff;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+        box-shadow: 0 4px 20px var(--accent-glow);
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 28px var(--accent-glow);
+        background: var(--gradient-btn-hover);
+      }
+      .btn-primary:active { transform: translateY(0); }
+      .btn-primary:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .btn-primary svg { width: 18px; height: 18px; }
+      .status-text {
+        font-size: 13px;
+        color: var(--text-muted);
+        transition: color var(--transition);
+      }
+      .status-text.error { color: var(--accent-2); }
+
+      /* ─── Loading Spinner ───────────────────────────────── */
+      .spinner {
+        display: none;
+        width: 18px; height: 18px;
+        border: 2px solid rgba(255,255,255,0.25);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+      }
+      .btn-primary.loading .spinner { display: inline-block; }
+      .btn-primary.loading .btn-icon { display: none; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* ─── Results ───────────────────────────────────────── */
+      .results-section {
+        margin-top: 32px;
+        padding-bottom: 60px;
+      }
+      .results-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+      .results-header h2 {
+        font-size: 20px;
+        font-weight: 700;
+      }
+      .result-count {
+        font-size: 12px;
+        font-weight: 600;
+        background: rgba(108, 99, 255, 0.15);
+        color: var(--accent);
+        border-radius: 999px;
+        padding: 3px 10px;
+      }
+      .summary-box {
+        background: rgba(108, 99, 255, 0.06);
+        border: 1px solid rgba(108, 99, 255, 0.15);
+        border-radius: var(--radius-sm);
+        padding: 16px 18px;
+        font-size: 14px;
+        line-height: 1.7;
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      .results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
+      }
+
+      /* ─── Restaurant Card ───────────────────────────────── */
+      .restaurant-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+        animation: fadeUp 0.4s ease both;
+      }
+      .restaurant-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--border-hover);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+      }
+      @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      .card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 10px;
+      }
+      .card-name {
+        font-size: 17px;
+        font-weight: 700;
+        line-height: 1.3;
+        flex: 1;
+        margin-right: 10px;
+      }
+      .card-rating {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #fbbf24;
+        background: rgba(251, 191, 36, 0.1);
+        border-radius: 8px;
+        padding: 4px 10px;
+        white-space: nowrap;
+      }
+      .card-rating svg {
+        width: 14px; height: 14px;
+        fill: #fbbf24;
+      }
+      .card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 12px;
+      }
+      .meta-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        background: rgba(0,0,0,0.2);
+      }
+      .meta-pill svg { width: 12px; height: 12px; opacity: 0.7; }
+      .card-cuisines {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+      }
+      .card-reason {
+        font-size: 13px;
+        line-height: 1.55;
+        color: var(--text-secondary);
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+      }
+      .card-reason strong {
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      /* ─── Empty State ───────────────────────────────────── */
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-muted);
+      }
+      .empty-state svg {
+        width: 48px; height: 48px;
+        opacity: 0.3;
+        margin-bottom: 12px;
+      }
+
+      /* ─── Footer ────────────────────────────────────────── */
+      .footer {
+        text-align: center;
+        padding: 24px 0 32px;
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+      .footer a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      /* ─── Responsive ────────────────────────────────────── */
+      @media (max-width: 768px) {
+        .col-6, .col-4, .col-3 { grid-column: span 12; }
+        .glass-card { padding: 20px; }
+        .results-grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- ═══ Hero ═══ -->
+      <section class="hero" id="hero">
+        <div class="hero-badge"><span class="dot"></span> AI-Powered</div>
+        <h1>Find Your Perfect <span class="gradient-text">Restaurant</span></h1>
+        <p>Tell us what you're craving — our AI engine filters thousands of restaurants and uses Groq LLM to pick the best matches for you.</p>
+      </section>
+
+      <!-- ═══ Form Card ═══ -->
+      <div class="glass-card">
+        <div class="form-section">
+          <div class="section-title">Your Preferences</div>
+          <div class="form-grid">
+            <div class="col-6 field">
+              <label for="location">📍 Location</label>
+              <input id="location" placeholder="e.g., Indiranagar, Koramangala, City Center" />
+            </div>
+            <div class="col-3 field">
+              <label for="min_rating">⭐ Min Rating</label>
+              <input id="min_rating" type="number" step="0.1" min="0" max="5" placeholder="e.g., 4.0" />
+            </div>
+            <div class="col-3 field">
+              <label for="limit">🔢 Results</label>
+              <input id="limit" type="number" min="1" max="20" value="5" />
+            </div>
+
+            <div class="col-3 field">
+              <label for="min_price">💰 Min Price</label>
+              <input id="min_price" type="number" min="0" placeholder="e.g., 200" />
+            </div>
+            <div class="col-3 field">
+              <label for="max_price">💰 Max Price</label>
+              <input id="max_price" type="number" min="0" placeholder="e.g., 1500" />
+            </div>
+            <div class="col-6 field">
+              <label for="cuisines">🍽️ Cuisines (comma-separated)</label>
+              <input id="cuisines" placeholder="e.g., Italian, Chinese, North Indian" />
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" id="go">
+            <span class="btn-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </span>
+            <span class="spinner"></span>
+            Get Recommendations
+          </button>
+          <span class="status-text" id="status"></span>
+        </div>
+      </div>
+
+      <!-- ═══ Results ═══ -->
+      <div class="results-section" id="results-section" style="display:none;">
+        <div class="results-header">
+          <h2>Recommendations</h2>
+          <span class="result-count" id="result-count"></span>
+        </div>
+        <div class="summary-box" id="summary-box"></div>
+        <div class="results-grid" id="results-grid"></div>
+      </div>
+
+      <!-- ═══ Footer ═══ -->
+      <footer class="footer">
+        Built with FastAPI + Groq LLM &middot; <a href="/docs" target="_blank">API Docs</a>
+      </footer>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+
+      function toNum(v) {
+        const s = (v || '').trim();
+        if (!s) return undefined;
+        const n = Number(s);
+        return Number.isFinite(n) ? n : undefined;
+      }
+      function toInt(v) {
+        const n = toNum(v);
+        return n === undefined ? undefined : Math.trunc(n);
+      }
+      function toCuisineList(v) {
+        const s = (v || '').trim();
+        if (!s) return undefined;
+        return s.split(',').map(x => x.trim()).filter(Boolean);
+      }
+
+      function starSVG() {
+        return '<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>';
+      }
+
+      function renderResults(data) {
+        const section  = $('results-section');
+        const countEl  = $('result-count');
+        const summary  = $('summary-box');
+        const grid     = $('results-grid');
+
+        section.style.display = 'block';
+        summary.textContent = data.summary || '';
+        grid.innerHTML = '';
+
+        const recs = data.recommendations || [];
+        countEl.textContent = recs.length + ' found';
+
+        if (recs.length === 0) {
+          grid.innerHTML = `
+            <div class="empty-state">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+              </svg>
+              <p>No restaurants matched your preferences. Try broadening your filters.</p>
+            </div>`;
+          return;
+        }
+
+        recs.forEach((r, i) => {
+          const card = document.createElement('div');
+          card.className = 'restaurant-card';
+          card.style.animationDelay = (i * 0.06) + 's';
+
+          const ratingText = r.rating != null ? r.rating.toFixed(1) : '—';
+          const priceText = r.price_range != null ? '₹' + r.price_range.toLocaleString() : '—';
+          const locationText = r.location || '—';
+
+          card.innerHTML = `
+            <div class="card-top">
+              <div class="card-name">${escapeHTML(r.name)}</div>
+              <div class="card-rating">${starSVG()} ${ratingText}</div>
+            </div>
+            <div class="card-meta">
+              <span class="meta-pill">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                ${escapeHTML(locationText)}
+              </span>
+              <span class="meta-pill">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                ${escapeHTML(priceText)}
+              </span>
+            </div>
+            ${r.cuisines ? `<div class="card-cuisines">${escapeHTML(r.cuisines)}</div>` : ''}
+            <div class="card-reason"><strong>Why this pick:</strong> ${escapeHTML(r.reason)}</div>
+          `;
+          grid.appendChild(card);
+        });
+      }
+
+      function escapeHTML(str) {
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+      }
+
+      async function run() {
+        const btn    = $('go');
+        const status = $('status');
+
+        btn.classList.add('loading');
+        btn.disabled = true;
+        status.className = 'status-text';
+        status.textContent = 'Fetching recommendations…';
+
+        try {
+          const payload = {
+            location:           $('location').value || undefined,
+            min_rating:         toNum($('min_rating').value),
+            min_price:          toInt($('min_price').value),
+            max_price:          toInt($('max_price').value),
+            preferred_cuisines: toCuisineList($('cuisines').value),
+            limit:              toInt($('limit').value) || 5,
+          };
+
+          const resp = await fetch('/recommendations/pipeline', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data?.detail || `HTTP ${resp.status}`);
+
+          renderResults(data);
+          status.textContent = 'Done ✓';
+        } catch (e) {
+          status.textContent = `Error: ${e.message || e}`;
+          status.className = 'status-text error';
+        } finally {
+          btn.classList.remove('loading');
+          btn.disabled = false;
+        }
+      }
+
+      // Enter key in any input triggers search
+      document.querySelectorAll('.field input').forEach(inp => {
+        inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') run(); });
+      });
+
+      $('go').addEventListener('click', run);
+    </script>
+  </body>
+</html>
