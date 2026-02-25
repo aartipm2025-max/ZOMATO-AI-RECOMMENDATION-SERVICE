@@ -101,3 +101,26 @@ def test_recommendations_endpoint_applies_price_filters():
     assert len(recs) == 1
     assert recs[0]["name"] == "Budget Bites"
 
+
+def test_locations_endpoint_returns_sorted_unique_locations():
+    engine = _make_in_memory_engine()
+    _seed_sample_data(engine)
+
+    app = create_app(engine=engine)
+    client = TestClient(app)
+
+    resp = client.get("/locations")
+    assert resp.status_code == 200
+
+    locations = resp.json()
+    assert isinstance(locations, list)
+
+    # Our seed data has exactly two distinct locations.
+    assert set(locations) == {"City Center", "Old Town"}
+
+    # Must be sorted case-insensitively.
+    assert locations == sorted(locations, key=str.casefold)
+
+    # No duplicates.
+    assert len(locations) == len(set(locations))
+

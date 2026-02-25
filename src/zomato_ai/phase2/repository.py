@@ -55,3 +55,22 @@ def fetch_all_restaurants(engine: Engine) -> List[Mapping[str, Any]]:
         rows = result.mappings().all()
     return list(rows)
 
+
+def fetch_unique_locations(engine: Engine) -> List[str]:
+    """
+    Return a sorted list of unique, non-empty location strings from the
+    restaurants table.  Whitespace is stripped and empty values are excluded.
+    """
+    stmt = select(restaurants_table.c.location).distinct()
+    with engine.connect() as conn:
+        rows = conn.execute(stmt).scalars().all()
+
+    locations: set[str] = set()
+    for raw in rows:
+        if raw is None:
+            continue
+        cleaned = str(raw).strip()
+        if cleaned:
+            locations.add(cleaned)
+
+    return sorted(locations, key=str.casefold)
