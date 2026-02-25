@@ -17,7 +17,7 @@ def load_groq_config_from_env() -> GroqConfig:
     if not api_key:
         raise RuntimeError("Missing GROQ_API_KEY in environment (.env)")
 
-    model = os.getenv("GROQ_MODEL", "llama3-70b-8192").strip() or "llama3-70b-8192"
+    model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile").strip() or "llama-3.3-70b-versatile"
     return GroqConfig(api_key=api_key, model=model)
 
 

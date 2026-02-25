@@ -145,24 +145,26 @@ GROQ_MODEL=llama3-70b-8192
 ### 4. Ingest the Zomato Dataset (First Time Only)
 
 ```bash
-# Windows
-py -c "from zomato_ai.phase1.ingestion import ingest_huggingface_dataset; print(f'Ingested {ingest_huggingface_dataset()} restaurants')"
+# Windows (run from project root)
+$env:PYTHONPATH="src"; py -c "from zomato_ai.phase1.ingestion import ingest_huggingface_dataset; print(f'Ingested {ingest_huggingface_dataset()} restaurants')"
 
-# macOS / Linux
-python -c "from zomato_ai.phase1.ingestion import ingest_huggingface_dataset; print(f'Ingested {ingest_huggingface_dataset()} restaurants')"
+# macOS / Linux (run from project root)
+PYTHONPATH=src python -c "from zomato_ai.phase1.ingestion import ingest_huggingface_dataset; print(f'Ingested {ingest_huggingface_dataset()} restaurants')"
 ```
 
-> Make sure you're in the project root directory and `src/` is on your Python path (or set `PYTHONPATH=src`).
+> **Important:** Always run this from the **project root** directory so that `zomato_restaurants.db` is created in the right place.
 
 ### 5. Start the Server
 
 ```bash
-# Windows
-py -m uvicorn zomato_ai.phase2.api:app --reload --app-dir src
+# Windows (run from project root)
+$env:PYTHONPATH="src"; py -m uvicorn zomato_ai.phase2.api:app --host 0.0.0.0 --port 8000 --reload
 
-# macOS / Linux
-uvicorn zomato_ai.phase2.api:app --reload --app-dir src
+# macOS / Linux (run from project root)
+PYTHONPATH=src uvicorn zomato_ai.phase2.api:app --host 0.0.0.0 --port 8000 --reload
 ```
+
+> **Why `PYTHONPATH=src`?** This keeps the working directory at the project root so the SQLite database (`zomato_restaurants.db`) and `.env` file are found correctly.
 
 ### 6. Open in Browser
 

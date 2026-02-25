@@ -22,7 +22,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ src/
 COPY .env.example .env
 
-# Ensure src is on the Python path
+# Ensure src is on the Python path; keep working dir at /app so
+# the SQLite DB and .env resolve correctly relative to the project root.
 ENV PYTHONPATH="/app/src"
 
 # ─── Non-root user ───────────────────────────────────────
