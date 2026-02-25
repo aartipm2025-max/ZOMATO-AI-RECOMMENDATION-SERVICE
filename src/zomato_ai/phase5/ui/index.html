@@ -4,33 +4,33 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Zomato AI — Smart Restaurant Recommendations</title>
+  <title>Zomato AI — Find Your Perfect Restaurant</title>
   <meta name="description"
-    content="Get AI-powered restaurant recommendations based on your preferences. Powered by Groq LLM and the Zomato dataset." />
+    content="AI-powered restaurant recommendations based on your preferences. Powered by Groq LLM and the Zomato dataset." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;800&display=swap"
+    rel="stylesheet" />
   <style>
-    /* ─── Design Tokens ────────────────────────────────── */
+    /* ─── Design Tokens ─────────────────────────────────── */
     :root {
-      --bg-deep: #06090f;
-      --bg-card: rgba(255, 255, 255, 0.06);
-      --bg-input: rgba(0, 0, 0, 0.35);
-      --border: rgba(255, 255, 255, 0.08);
-      --border-hover: rgba(255, 255, 255, 0.18);
-      --text-primary: #eaf0ff;
-      --text-secondary: rgba(234, 240, 255, 0.65);
-      --text-muted: rgba(234, 240, 255, 0.45);
-      --accent: #6C63FF;
-      --accent-glow: rgba(108, 99, 255, 0.35);
-      --accent-2: #FF6584;
-      --gradient-hero: linear-gradient(135deg, #6C63FF 0%, #FF6584 50%, #FFA751 100%);
-      --gradient-btn: linear-gradient(135deg, #6C63FF 0%, #8B5CF6 100%);
+      --white: #ffffff;
+      --cream: #faf9f6;
+      --surface: #f2f0eb;
+      --border: #e5e1d8;
+      --shadow: rgba(0, 0, 0, 0.07);
+      --text: #1a1a1a;
+      --muted: #6b6b6b;
+      --light: #aaaaaa;
+      --red: #c0392b;
+      --red-light: #fdf0ef;
+      --black: #111111;
+      --black-hover: #333333;
       --radius: 16px;
       --radius-sm: 10px;
-      --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
-      --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+      --tr: .2s cubic-bezier(.4, 0, .2, 1);
+      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
     }
 
     *,
@@ -46,75 +46,196 @@
     }
 
     body {
-      background: var(--bg-deep);
-      color: var(--text-primary);
+      background: var(--cream);
+      color: var(--text);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ─── Background blobs ──────────────────────────────── */
-    body::before,
-    body::after {
-      content: '';
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(120px);
-      opacity: 0.12;
+    /* ─── Nav ───────────────────────────────────────────── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 48px;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 10px var(--shadow);
+    }
+
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 21px;
+      font-weight: 800;
+      color: var(--red);
+      letter-spacing: -.3px;
+    }
+
+    .nav-logo span {
+      color: var(--black);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted);
+      transition: color var(--tr);
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--text);
+    }
+
+    .nav-links a.active {
+      font-weight: 700;
+      color: var(--red);
+    }
+
+    /* ─── Hero ──────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      text-align: center;
+      padding: 52px 24px 44px;
+      background: var(--white);
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* food floats */
+    .food-float {
+      position: absolute;
       pointer-events: none;
-      z-index: 0;
+      user-select: none;
+      font-size: 68px;
+      line-height: 1;
+      top: 50%;
+      transform: translateY(-50%);
     }
 
-    body::before {
-      width: 600px;
-      height: 600px;
-      background: #6C63FF;
-      top: -200px;
-      left: -100px;
+    .food-float.fl {
+      left: 7%;
+      animation: bobL 4s ease-in-out infinite;
     }
 
-    body::after {
-      width: 500px;
-      height: 500px;
-      background: #FF6584;
-      bottom: -150px;
-      right: -100px;
+    .food-float.fr {
+      right: 7%;
+      animation: bobR 4.2s ease-in-out infinite;
     }
 
-    /* ─── Layout ─────────────────────────────────────────── */
-    .container {
+    @keyframes bobL {
+
+      0%,
+      100% {
+        transform: translateY(-50%) rotate(-8deg)
+      }
+
+      50% {
+        transform: translateY(calc(-50% - 12px)) rotate(-8deg)
+      }
+    }
+
+    @keyframes bobR {
+
+      0%,
+      100% {
+        transform: translateY(-50%) rotate(10deg)
+      }
+
+      50% {
+        transform: translateY(calc(-50% - 10px)) rotate(10deg)
+      }
+    }
+
+    /* sparkles */
+    .sp {
+      position: absolute;
+      pointer-events: none;
+      font-size: 16px;
+      color: var(--red);
+      opacity: .5;
+      animation: spk 3s ease-in-out infinite;
+    }
+
+    .sp:nth-of-type(1) {
+      top: 16%;
+      left: 23%;
+      animation-delay: .0s
+    }
+
+    .sp:nth-of-type(2) {
+      top: 72%;
+      left: 32%;
+      animation-delay: 1.2s
+    }
+
+    .sp:nth-of-type(3) {
+      top: 18%;
+      right: 24%;
+      animation-delay: .5s
+    }
+
+    .sp:nth-of-type(4) {
+      top: 68%;
+      right: 30%;
+      animation-delay: 1.8s
+    }
+
+    .sp:nth-of-type(5) {
+      top: 8%;
+      left: 52%;
+      animation-delay: .9s
+    }
+
+    @keyframes spk {
+
+      0%,
+      100% {
+        opacity: .3;
+        transform: scale(.9)
+      }
+
+      50% {
+        opacity: .8;
+        transform: scale(1.2) rotate(15deg)
+      }
+    }
+
+    .hero-content {
       position: relative;
       z-index: 1;
-      max-width: 1040px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-
-    /* ─── Hero ───────────────────────────────────────────── */
-    .hero {
-      padding: 52px 0 32px;
-      text-align: center;
     }
 
     .hero-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .9px;
       text-transform: uppercase;
-      color: var(--accent);
-      background: rgba(108, 99, 255, 0.12);
-      border: 1px solid rgba(108, 99, 255, 0.2);
+      color: var(--red);
+      background: var(--red-light);
+      border: 1px solid rgba(192, 57, 43, .18);
       border-radius: 999px;
-      padding: 6px 14px;
+      padding: 5px 14px;
       margin-bottom: 18px;
     }
 
     .hero-badge .dot {
       width: 6px;
       height: 6px;
-      background: var(--accent);
+      background: var(--red);
       border-radius: 50%;
       animation: pulse 2s ease-in-out infinite;
     }
@@ -128,56 +249,58 @@
       }
 
       50% {
-        opacity: .5;
-        transform: scale(.8)
+        opacity: .4;
+        transform: scale(.7)
       }
     }
 
     .hero h1 {
-      font-size: clamp(28px, 5vw, 42px);
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 5vw, 52px);
       font-weight: 800;
       line-height: 1.15;
       margin-bottom: 12px;
     }
 
-    .hero h1 .gradient-text {
-      background: var(--gradient-hero);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    .hero h1 .red {
+      color: var(--red);
+    }
+
+    .hero h1 .dark {
+      color: var(--black);
     }
 
     .hero p {
-      color: var(--text-secondary);
-      font-size: 16px;
-      max-width: 520px;
+      font-size: 15px;
+      color: var(--muted);
+      max-width: 460px;
       margin: 0 auto;
-      line-height: 1.6;
+      line-height: 1.65;
     }
 
-    /* ─── Glass card ─────────────────────────────────────── */
-    .glass-card {
-      background: var(--bg-card);
+    /* ─── Main content wrapper ──────────────────────────── */
+    .main {
+      padding: 36px 20px 60px;
+    }
+
+    /* ─── Glass/white filter card ───────────────────────── */
+    .filter-card {
+      background: var(--white);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 28px;
-      backdrop-filter: blur(20px);
-      box-shadow: var(--shadow-card);
-      transition: border-color var(--transition);
+      padding: 28px 30px 22px;
+      max-width: 800px;
+      margin: 0 auto 28px;
+      box-shadow: 0 4px 20px var(--shadow);
     }
 
-    .glass-card:hover {
-      border-color: var(--border-hover);
-    }
-
-    /* ─── Form grid ──────────────────────────────────────── */
-    .section-title {
-      font-size: 13px;
-      font-weight: 600;
+    .filter-title {
+      font-size: 11px;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: .8px;
-      color: var(--text-muted);
-      margin-bottom: 14px;
+      letter-spacing: .9px;
+      color: var(--light);
+      margin-bottom: 18px;
     }
 
     .form-grid {
@@ -194,336 +317,340 @@
       grid-column: span 4;
     }
 
-    .col-3 {
-      grid-column: span 3;
-    }
-
     .col-12 {
       grid-column: span 12;
     }
 
     .field label {
       display: block;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
       margin-bottom: 6px;
+      letter-spacing: .3px;
     }
 
-    /* plain inputs */
     .field input[type=number],
     .field input[type=text] {
       width: 100%;
-      padding: 11px 14px;
+      padding: 10px 14px;
       border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      background: var(--bg-input);
-      color: var(--text-primary);
+      border: 1.5px solid var(--border);
+      background: var(--cream);
+      color: var(--text);
       font-family: inherit;
       font-size: 14px;
       outline: none;
-      transition: border-color var(--transition), box-shadow var(--transition);
+      transition: border-color var(--tr), box-shadow var(--tr);
     }
 
     .field input::placeholder {
-      color: var(--text-muted);
+      color: var(--light);
     }
 
     .field input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
+      border-color: var(--black);
+      box-shadow: 0 0 0 3px rgba(17, 17, 17, .1);
     }
 
-    /* ─── Custom Location Dropdown ───────────────────────── */
-    .location-wrap {
+    /* ─── Location dropdown ─────────────────────────────── */
+    .loc-wrap {
       position: relative;
     }
 
-    .location-input-row {
+    .loc-row {
       display: flex;
       align-items: center;
-      background: var(--bg-input);
-      border: 1px solid var(--border);
+      background: var(--cream);
+      border: 1.5px solid var(--border);
       border-radius: var(--radius-sm);
-      overflow: visible;
-      transition: border-color var(--transition), box-shadow var(--transition);
+      transition: border-color var(--tr), box-shadow var(--tr);
     }
 
-    .location-input-row:focus-within {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
+    .loc-row.open,
+    .loc-row:focus-within {
+      border-color: var(--black);
+      box-shadow: 0 0 0 3px rgba(17, 17, 17, .1);
     }
 
-    .location-input-row.open {
+    .loc-row.open {
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
     }
 
-    #location-input {
+    #loc-input {
       flex: 1;
-      padding: 11px 14px;
+      padding: 10px 14px;
       background: transparent;
       border: none;
-      color: var(--text-primary);
+      color: var(--text);
       font-family: inherit;
       font-size: 14px;
       outline: none;
     }
 
-    #location-input::placeholder {
-      color: var(--text-muted);
+    #loc-input::placeholder {
+      color: var(--light);
     }
 
-    .location-chevron {
-      padding: 0 12px 0 4px;
-      color: var(--text-muted);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      transition: transform var(--transition), color var(--transition);
-      flex-shrink: 0;
-    }
-
-    .location-chevron:hover {
-      color: var(--text-primary);
-    }
-
-    .location-input-row.open .location-chevron {
-      transform: rotate(180deg);
-      color: var(--accent);
-    }
-
-    .location-clear {
-      padding: 0 8px 0 4px;
-      color: var(--text-muted);
+    .loc-clear {
+      padding: 0 6px 0 2px;
+      color: var(--light);
       cursor: pointer;
       display: none;
       align-items: center;
       flex-shrink: 0;
-      transition: color var(--transition);
+      transition: color var(--tr);
     }
 
-    .location-clear:hover {
-      color: var(--accent-2);
+    .loc-clear:hover {
+      color: var(--red);
     }
 
-    .location-clear.visible {
+    .loc-clear.show {
       display: flex;
     }
 
-    /* dropdown list */
-    .location-dropdown {
+    .loc-chevron {
+      padding: 0 12px 0 2px;
+      color: var(--light);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      transition: transform var(--tr), color var(--tr);
+    }
+
+    .loc-chevron:hover {
+      color: var(--text);
+    }
+
+    .loc-row.open .loc-chevron {
+      transform: rotate(180deg);
+      color: var(--black);
+    }
+
+    .loc-dropdown {
       display: none;
       position: absolute;
       top: 100%;
       left: 0;
       right: 0;
-      z-index: 200;
-      background: #0f1525;
-      border: 1px solid var(--border-hover);
+      z-index: 300;
+      background: var(--white);
+      border: 1.5px solid var(--black);
       border-top: none;
       border-bottom-left-radius: var(--radius-sm);
       border-bottom-right-radius: var(--radius-sm);
-      max-height: 260px;
+      max-height: 240px;
       overflow-y: auto;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, .12);
       scrollbar-width: thin;
-      scrollbar-color: rgba(108, 99, 255, 0.4) transparent;
+      scrollbar-color: rgba(0, 0, 0, .2) transparent;
     }
 
-    .location-dropdown.open {
+    .loc-dropdown.open {
       display: block;
     }
 
-    .location-option {
-      padding: 10px 14px;
+    .loc-opt {
+      padding: 9px 14px;
       font-size: 14px;
       cursor: pointer;
-      color: var(--text-secondary);
-      transition: background var(--transition), color var(--transition);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      transition: background var(--tr), color var(--tr);
     }
 
-    .location-option:last-child {
+    .loc-opt:last-child {
       border-bottom: none;
     }
 
-    .location-option:hover,
-    .location-option.focused {
-      background: rgba(108, 99, 255, 0.12);
-      color: var(--text-primary);
+    .loc-opt:hover,
+    .loc-opt.on {
+      background: var(--surface);
+      color: var(--text);
     }
 
-    .location-option mark {
+    .loc-opt mark {
       background: transparent;
-      color: var(--accent);
+      color: var(--black);
       font-weight: 700;
     }
 
-    .location-no-results {
-      padding: 12px 14px;
+    .loc-none {
+      padding: 10px 14px;
       font-size: 13px;
-      color: var(--text-muted);
+      color: var(--light);
       font-style: italic;
     }
 
-    .location-loading {
-      padding: 12px 14px;
+    .loc-spin-wrap {
+      padding: 10px 14px;
       font-size: 13px;
-      color: var(--text-muted);
+      color: var(--light);
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .loc-spinner {
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(108, 99, 255, 0.3);
-      border-top-color: var(--accent);
+    .loc-spin {
+      width: 13px;
+      height: 13px;
+      border: 2px solid rgba(0, 0, 0, .15);
+      border-top-color: var(--black);
       border-radius: 50%;
-      animation: spin 0.6s linear infinite;
+      animation: spin .6s linear infinite;
     }
 
-    /* ─── Button ─────────────────────────────────────────── */
-    .actions {
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    /* ─── CTA (centred) ─────────────────────────────────── */
+    .cta-wrap {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 44px;
     }
 
-    .btn-primary {
+    .btn-go {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 12px 28px;
+      gap: 10px;
+      padding: 14px 44px;
       border: none;
-      border-radius: 12px;
-      background: var(--gradient-btn);
-      color: #fff;
+      border-radius: 999px;
+      background: var(--black);
+      color: var(--white);
       font-family: inherit;
-      font-size: 14px;
-      font-weight: 700;
+      font-size: 16px;
+      font-weight: 800;
       cursor: pointer;
-      transition: transform var(--transition), box-shadow var(--transition);
-      box-shadow: 0 4px 20px var(--accent-glow);
+      letter-spacing: .2px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, .22);
+      transition: transform var(--tr), box-shadow var(--tr), background var(--tr);
     }
 
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 28px var(--accent-glow);
+    .btn-go:hover {
+      background: var(--black-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, .3);
     }
 
-    .btn-primary:active {
+    .btn-go:active {
       transform: translateY(0);
     }
 
-    .btn-primary:disabled {
-      opacity: .55;
+    .btn-go:disabled {
+      opacity: .5;
       cursor: not-allowed;
       transform: none;
+      box-shadow: none;
     }
 
-    .spinner {
+    .btn-spinner {
       display: none;
       width: 18px;
       height: 18px;
-      border: 2px solid rgba(255, 255, 255, .25);
+      border: 2px solid rgba(255, 255, 255, .3);
       border-top-color: #fff;
       border-radius: 50%;
       animation: spin .6s linear infinite;
     }
 
-    .btn-primary.loading .spinner {
+    .btn-go.loading .btn-spinner {
       display: inline-block;
     }
 
-    .btn-primary.loading .btn-icon {
+    .btn-go.loading .btn-icon {
       display: none;
     }
 
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    .status-text {
+    .status {
       font-size: 13px;
-      color: var(--text-muted);
+      color: var(--muted);
     }
 
-    .status-text.error {
-      color: var(--accent-2);
+    .status.err {
+      color: var(--red);
+      font-weight: 600;
     }
 
-    /* ─── Results ─────────────────────────────────────────── */
+    /* ─── Results ───────────────────────────────────────── */
     .results-section {
-      margin-top: 32px;
-      padding-bottom: 60px;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 0 60px;
     }
 
     .results-header {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .results-header h2 {
-      font-size: 20px;
-      font-weight: 700;
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 800;
     }
 
     .result-count {
-      font-size: 12px;
-      font-weight: 600;
-      background: rgba(108, 99, 255, 0.15);
-      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--surface);
+      color: var(--muted);
+      border: 1px solid var(--border);
       border-radius: 999px;
-      padding: 3px 10px;
+      padding: 3px 12px;
     }
 
     .summary-box {
-      background: rgba(108, 99, 255, 0.06);
-      border: 1px solid rgba(108, 99, 255, 0.15);
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-left: 4px solid var(--black);
       border-radius: var(--radius-sm);
-      padding: 16px 18px;
+      padding: 14px 18px;
       font-size: 14px;
       line-height: 1.7;
-      color: var(--text-secondary);
-      margin-bottom: 20px;
+      color: var(--muted);
+      margin-bottom: 18px;
       white-space: pre-wrap;
       word-wrap: break-word;
     }
 
     .results-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
       gap: 16px;
     }
 
-    /* ─── Restaurant card ────────────────────────────────── */
-    .restaurant-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
+    /* ─── Restaurant card ───────────────────────────────── */
+    .r-card {
+      background: var(--white);
+      border: 1.5px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
-      animation: fadeUp 0.4s ease both;
+      transition: transform var(--tr), border-color var(--tr), box-shadow var(--tr);
+      animation: fadeUp .38s ease both;
     }
 
-    .restaurant-card:hover {
-      transform: translateY(-3px);
-      border-color: var(--border-hover);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    .r-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--black);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, .1);
     }
 
     @keyframes fadeUp {
       from {
         opacity: 0;
-        transform: translateY(16px)
+        transform: translateY(14px)
       }
 
       to {
@@ -532,121 +659,129 @@
       }
     }
 
-    .card-top {
+    .r-top {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 10px;
     }
 
-    .card-name {
-      font-size: 17px;
+    .r-name {
+      font-size: 16px;
       font-weight: 700;
       line-height: 1.3;
       flex: 1;
       margin-right: 10px;
     }
 
-    .card-rating {
+    .r-rating {
       display: flex;
       align-items: center;
       gap: 4px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
-      color: #fbbf24;
-      background: rgba(251, 191, 36, 0.1);
+      color: #b7791f;
+      background: #fefce8;
+      border: 1px solid #fde68a;
       border-radius: 8px;
-      padding: 4px 10px;
+      padding: 4px 9px;
       white-space: nowrap;
     }
 
-    .card-rating svg {
-      width: 14px;
-      height: 14px;
-      fill: #fbbf24;
+    .r-rating svg {
+      width: 12px;
+      height: 12px;
+      fill: #b7791f;
     }
 
-    .card-meta {
+    .r-meta {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
-    .meta-pill {
+    .r-pill {
       display: inline-flex;
       align-items: center;
       gap: 4px;
       font-size: 12px;
-      padding: 4px 10px;
+      padding: 3px 10px;
       border-radius: 999px;
       border: 1px solid var(--border);
-      color: var(--text-secondary);
-      background: rgba(0, 0, 0, 0.2);
+      color: var(--muted);
+      background: var(--cream);
     }
 
-    .meta-pill svg {
-      width: 12px;
-      height: 12px;
-      opacity: .7;
+    .r-pill svg {
+      width: 11px;
+      height: 11px;
+      opacity: .55;
     }
 
-    .card-cuisines {
+    .r-cuisines {
       font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 12px;
+      color: var(--light);
+      margin-bottom: 10px;
     }
 
-    .card-reason {
+    .r-reason {
       font-size: 13px;
       line-height: 1.55;
-      color: var(--text-secondary);
-      padding-top: 12px;
+      color: var(--muted);
+      padding-top: 10px;
       border-top: 1px solid var(--border);
     }
 
-    .card-reason strong {
-      color: var(--accent);
+    .r-reason strong {
+      color: var(--red);
       font-weight: 600;
     }
 
     .empty-state {
       text-align: center;
-      padding: 40px 20px;
-      color: var(--text-muted);
+      padding: 40px;
+      color: var(--light);
+      grid-column: 1/-1;
+      font-size: 14px;
     }
 
-    .empty-state svg {
-      width: 48px;
-      height: 48px;
-      opacity: .3;
-      margin-bottom: 12px;
-    }
-
-    /* ─── Footer ─────────────────────────────────────────── */
+    /* ─── Footer ────────────────────────────────────────── */
     .footer {
       text-align: center;
-      padding: 24px 0 32px;
+      padding: 22px 0 32px;
       font-size: 12px;
-      color: var(--text-muted);
+      color: var(--light);
+      border-top: 1px solid var(--border);
     }
 
     .footer a {
-      color: var(--accent);
+      color: var(--black);
       text-decoration: none;
+      font-weight: 600;
     }
 
-    /* ─── Responsive ─────────────────────────────────────── */
-    @media (max-width: 768px) {
+    /* ─── Responsive ────────────────────────────────────── */
+    @media(max-width:768px) {
+      nav {
+        padding: 14px 18px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .food-float {
+        font-size: 40px;
+      }
 
       .col-6,
-      .col-4,
-      .col-3 {
+      .col-4 {
         grid-column: span 12;
       }
 
-      .glass-card {
-        padding: 20px;
+      .filter-card {
+        padding: 18px;
       }
 
       .results-grid {
@@ -657,90 +792,115 @@
 </head>
 
 <body>
-  <div class="container">
-    <!-- Hero -->
-    <section class="hero">
-      <div class="hero-badge"><span class="dot"></span> AI-Powered</div>
-      <h1>Find Your Perfect <span class="gradient-text">Restaurant</span></h1>
-      <p>Tell us what you're craving — our AI engine filters thousands of restaurants and uses Groq LLM to pick the best
-        matches for you.</p>
-    </section>
 
-    <!-- Form card -->
-    <div class="glass-card">
-      <div class="section-title">Your Preferences</div>
+  <!-- ══ Nav ══ -->
+  <nav>
+    <div class="nav-logo">Zomato<span>AI</span></div>
+    <ul class="nav-links">
+      <li><a href="#" class="active">Home</a></li>
+      <li><a href="/docs" target="_blank">API Docs</a></li>
+      <li><a href="#results-anchor">Results</a></li>
+    </ul>
+  </nav>
+
+  <!-- ══ Hero ══ -->
+  <section class="hero">
+    <span class="sp">✦</span>
+    <span class="sp">✶</span>
+    <span class="sp">✦</span>
+    <span class="sp">✶</span>
+    <span class="sp">⋆</span>
+    <div class="food-float fl">🍕</div>
+    <div class="food-float fr">🍜</div>
+    <div class="hero-content">
+      <div class="hero-badge"><span class="dot"></span> AI-Powered</div>
+      <h1>
+        <span class="red">Explore</span> the<br>
+        <span class="dark">World's</span> Cuisines!
+      </h1>
+      <p>Discover the perfect restaurant — filtered from thousands of options and ranked by AI, just for you.</p>
+    </div>
+  </section>
+
+  <!-- ══ Filter form ══ -->
+  <div class="main">
+    <div class="filter-card">
+      <div class="filter-title">Your Preferences</div>
       <div class="form-grid">
 
-        <!-- ── Location searchable dropdown ── -->
+        <!-- Location searchable dropdown -->
         <div class="col-6 field">
-          <label for="location-input">📍 Location</label>
-          <div class="location-wrap">
-            <div class="location-input-row" id="location-row">
-              <input id="location-input" type="text" placeholder="Search or select a location…" autocomplete="off"
-                aria-expanded="false" aria-autocomplete="list" aria-controls="location-listbox" role="combobox" />
-              <!-- Clear button -->
-              <span class="location-clear" id="location-clear" title="Clear" role="button" aria-label="Clear location">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"
+          <label>📍 Location</label>
+          <div class="loc-wrap">
+            <div class="loc-row" id="loc-row">
+              <input id="loc-input" type="text" placeholder="Search or select a location…" autocomplete="off"
+                role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="loc-listbox" />
+              <span class="loc-clear" id="loc-clear" role="button" title="Clear" tabindex="0">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"
                   stroke-linecap="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </span>
-              <!-- Chevron -->
-              <span class="location-chevron" id="location-chevron" title="Toggle list" role="button"
-                aria-label="Toggle location list">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+              <span class="loc-chevron" id="loc-chevron" role="button" tabindex="0">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"
                   stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
               </span>
             </div>
-            <!-- Dropdown list -->
-            <div class="location-dropdown" id="location-listbox" role="listbox" aria-label="Locations">
-              <div class="location-loading" id="location-loading">
-                <span class="loc-spinner"></span> Loading locations…
-              </div>
+            <div class="loc-dropdown" id="loc-listbox" role="listbox">
+              <div class="loc-spin-wrap" id="loc-loading"><span class="loc-spin"></span> Loading…</div>
             </div>
           </div>
         </div>
 
+        <!-- Min Rating -->
         <div class="col-6 field">
-          <label for="min_rating">⭐ Min Rating</label>
+          <label>⭐ Min Rating</label>
           <input id="min_rating" type="number" step="0.1" min="0" max="5" placeholder="e.g., 4.0" />
         </div>
 
-        <div class="col-3 field">
-          <label for="min_price">💰 Min Price (₹)</label>
+        <!-- Min / Max Price -->
+        <div class="col-4 field">
+          <label>💰 Min Price (₹)</label>
           <input id="min_price" type="number" min="0" placeholder="e.g., 200" />
         </div>
-        <div class="col-3 field">
-          <label for="max_price">💰 Max Price (₹)</label>
+        <div class="col-4 field">
+          <label>💰 Max Price (₹)</label>
           <input id="max_price" type="number" min="0" placeholder="e.g., 1500" />
         </div>
-        <div class="col-6 field">
-          <label for="cuisines">🍽️ Cuisines (comma-separated)</label>
-          <input id="cuisines" type="text" placeholder="e.g., Italian, Chinese, North Indian" />
-        </div>
-      </div>
 
-      <div class="actions" style="margin-top:18px;">
-        <button class="btn-primary" id="go">
-          <span class="btn-icon">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-          </span>
-          <span class="spinner"></span>
-          Get Recommendations
-        </button>
-        <span class="status-text" id="status"></span>
+        <!-- Cuisines with datalist from dataset -->
+        <div class="col-4 field">
+          <label>🍽️ Cuisines</label>
+          <input id="cuisines" type="text" placeholder="e.g., Italian, Chinese" list="cuisines-list"
+            autocomplete="off" />
+          <datalist id="cuisines-list"></datalist>
+        </div>
+
       </div>
     </div>
 
-    <!-- Results -->
+    <!-- ══ CTA centred ══ -->
+    <div class="cta-wrap">
+      <button class="btn-go" id="go">
+        <span class="btn-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+        </span>
+        <span class="btn-spinner"></span>
+        Get Recommendations
+      </button>
+      <span class="status" id="status"></span>
+    </div>
+
+    <!-- ══ Results ══ -->
     <div class="results-section" id="results-section" style="display:none;">
+      <div id="results-anchor"></div>
       <div class="results-header">
         <h2>Recommendations</h2>
         <span class="result-count" id="result-count"></span>
@@ -748,253 +908,162 @@
       <div class="summary-box" id="summary-box"></div>
       <div class="results-grid" id="results-grid"></div>
     </div>
-
-    <footer class="footer">Built with FastAPI + Groq LLM &middot; <a href="/docs" target="_blank">API Docs</a></footer>
   </div>
 
+  <!-- ══ Footer ══ -->
+  <footer class="footer">
+    Built with FastAPI + Groq LLM &middot; <a href="/docs" target="_blank">API Docs</a>
+  </footer>
+
   <script>
-    /* ─────────────────────────────────────────────────────
-       Location dropdown logic
-    ───────────────────────────────────────────────────── */
-    const locationInput = document.getElementById('location-input');
-    const locationRow = document.getElementById('location-row');
-    const locationListbox = document.getElementById('location-listbox');
-    const locationLoading = document.getElementById('location-loading');
-    const locationClear = document.getElementById('location-clear');
-    const locationChevron = document.getElementById('location-chevron');
+    'use strict';
 
-    let allLocations = [];     // full list fetched from /locations
-    let focusedIndex = -1;    // keyboard nav index
+    /* ── helpers ───────────────────────────────────────── */
+    const $ = id => document.getElementById(id);
+    function escapeHTML(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    function toNum(v) { const s = (v || '').trim(); if (!s) return undefined; const n = Number(s); return isFinite(n) ? n : undefined; }
+    function toInt(v) { const n = toNum(v); return n === undefined ? undefined : Math.trunc(n); }
+    function toCuisines(v) { const s = (v || '').trim(); if (!s) return undefined; return s.split(',').map(x => x.trim()).filter(Boolean); }
 
-    /* Fetch locations on page load */
+    /* ── location dropdown state ───────────────────────── */
+    const locInput = $('loc-input');
+    const locRow = $('loc-row');
+    const locListbox = $('loc-listbox');
+    const locLoading = $('loc-loading');
+    const locClear = $('loc-clear');
+    const locChevron = $('loc-chevron');
+    let allLocs = [];
+    let focusIdx = -1;
+
     async function loadLocations() {
-      try {
-        const resp = await fetch('/locations');
-        allLocations = await resp.json();
-      } catch (_) {
-        allLocations = [];
-      }
-      locationLoading.style.display = 'none';
-      renderOptions('');
+      try { const r = await fetch('/locations'); allLocs = await r.json(); }
+      catch (_) { allLocs = []; }
+      locLoading.style.display = 'none';
+      renderOpts('');
     }
 
-    /* Highlight matching substring */
-    function highlight(text, query) {
-      if (!query) return escapeHTML(text);
-      const idx = text.toLowerCase().indexOf(query.toLowerCase());
-      if (idx === -1) return escapeHTML(text);
-      return escapeHTML(text.slice(0, idx))
-        + '<mark>' + escapeHTML(text.slice(idx, idx + query.length)) + '</mark>'
-        + escapeHTML(text.slice(idx + query.length));
+    function hl(text, q) {
+      if (!q) return escapeHTML(text);
+      const i = text.toLowerCase().indexOf(q.toLowerCase());
+      if (i < 0) return escapeHTML(text);
+      return escapeHTML(text.slice(0, i)) + '<mark>' + escapeHTML(text.slice(i, i + q.length)) + '</mark>' + escapeHTML(text.slice(i + q.length));
     }
 
-    /* Render filtered options into the dropdown */
-    function renderOptions(query) {
-      const filtered = query
-        ? allLocations.filter(l => l.toLowerCase().includes(query.toLowerCase()))
-        : allLocations;
-
-      // Remove old options / no-results
-      locationListbox.querySelectorAll('.location-option, .location-no-results').forEach(el => el.remove());
-      focusedIndex = -1;
-
-      if (filtered.length === 0) {
-        const msg = document.createElement('div');
-        msg.className = 'location-no-results';
-        msg.textContent = query ? `No locations match "${query}"` : 'No locations available';
-        locationListbox.appendChild(msg);
-        return;
+    function renderOpts(q) {
+      locListbox.querySelectorAll('.loc-opt, .loc-none').forEach(el => el.remove());
+      focusIdx = -1;
+      const list = q ? allLocs.filter(l => l.toLowerCase().includes(q.toLowerCase())) : allLocs;
+      if (!list.length) {
+        const d = document.createElement('div'); d.className = 'loc-none';
+        d.textContent = q ? `No matches for "${q}"` : 'No locations loaded';
+        locListbox.appendChild(d); return;
       }
-
-      filtered.forEach((loc, i) => {
-        const opt = document.createElement('div');
-        opt.className = 'location-option';
-        opt.setAttribute('role', 'option');
-        opt.setAttribute('data-value', loc);
-        opt.innerHTML = highlight(loc, query);
-        opt.addEventListener('mousedown', (e) => {
-          e.preventDefault();   // don't blur the input
-          selectLocation(loc);
-        });
-        locationListbox.appendChild(opt);
+      list.forEach(loc => {
+        const d = document.createElement('div');
+        d.className = 'loc-opt'; d.role = 'option'; d.dataset.value = loc;
+        d.innerHTML = hl(loc, q);
+        d.addEventListener('mousedown', e => { e.preventDefault(); pickLoc(loc); });
+        locListbox.appendChild(d);
       });
     }
 
-    function selectLocation(val) {
-      locationInput.value = val;
-      closeDropdown();
-      updateClearBtn();
+    function pickLoc(v) { locInput.value = v; closeLocDrop(); updateClear(); }
+    function openLocDrop() { locRow.classList.add('open'); locListbox.classList.add('open'); locInput.setAttribute('aria-expanded', 'true'); renderOpts(locInput.value); }
+    function closeLocDrop() { locRow.classList.remove('open'); locListbox.classList.remove('open'); locInput.setAttribute('aria-expanded', 'false'); focusIdx = -1; clearFocus(); }
+    function updateClear() { locClear.classList.toggle('show', !!locInput.value.trim()); }
+    function clearFocus() { locListbox.querySelectorAll('.loc-opt.on').forEach(e => e.classList.remove('on')); }
+    function moveFocus(d) {
+      const opts = [...locListbox.querySelectorAll('.loc-opt')]; if (!opts.length) return;
+      clearFocus(); focusIdx = Math.max(0, Math.min(opts.length - 1, focusIdx + d));
+      opts[focusIdx].classList.add('on'); opts[focusIdx].scrollIntoView({ block: 'nearest' });
     }
 
-    function openDropdown() {
-      locationRow.classList.add('open');
-      locationListbox.classList.add('open');
-      locationInput.setAttribute('aria-expanded', 'true');
-      renderOptions(locationInput.value);
-    }
-
-    function closeDropdown() {
-      locationRow.classList.remove('open');
-      locationListbox.classList.remove('open');
-      locationInput.setAttribute('aria-expanded', 'false');
-      focusedIndex = -1;
-      clearFocused();
-    }
-
-    function updateClearBtn() {
-      locationClear.classList.toggle('visible', locationInput.value.trim() !== '');
-    }
-
-    function clearFocused() {
-      locationListbox.querySelectorAll('.location-option.focused').forEach(el => el.classList.remove('focused'));
-    }
-
-    function moveFocus(dir) {
-      const opts = [...locationListbox.querySelectorAll('.location-option')];
-      if (!opts.length) return;
-      clearFocused();
-      focusedIndex = Math.max(0, Math.min(opts.length - 1, focusedIndex + dir));
-      opts[focusedIndex].classList.add('focused');
-      opts[focusedIndex].scrollIntoView({ block: 'nearest' });
-    }
-
-    /* Input events */
-    locationInput.addEventListener('focus', () => openDropdown());
-
-    locationInput.addEventListener('input', () => {
-      openDropdown();
-      renderOptions(locationInput.value);
-      updateClearBtn();
-    });
-
-    locationInput.addEventListener('keydown', (e) => {
-      const isOpen = locationListbox.classList.contains('open');
-      if (e.key === 'ArrowDown') { e.preventDefault(); if (!isOpen) openDropdown(); else moveFocus(1); }
+    locInput.addEventListener('focus', openLocDrop);
+    locInput.addEventListener('input', () => { openLocDrop(); renderOpts(locInput.value); updateClear(); });
+    locInput.addEventListener('keydown', e => {
+      const open = locListbox.classList.contains('open');
+      if (e.key === 'ArrowDown') { e.preventDefault(); open ? moveFocus(1) : openLocDrop(); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); moveFocus(-1); }
-      else if (e.key === 'Enter') {
-        const focused = locationListbox.querySelector('.location-option.focused');
-        if (focused) { e.preventDefault(); selectLocation(focused.dataset.value); }
-        else closeDropdown();
-      }
-      else if (e.key === 'Escape') { closeDropdown(); }
-      else if (e.key === 'Tab') { closeDropdown(); }
+      else if (e.key === 'Enter') { const f = locListbox.querySelector('.loc-opt.on'); if (f) { e.preventDefault(); pickLoc(f.dataset.value); } else closeLocDrop(); }
+      else if (e.key === 'Escape' || e.key === 'Tab') closeLocDrop();
     });
+    locChevron.addEventListener('mousedown', e => { e.preventDefault(); locListbox.classList.contains('open') ? closeLocDrop() : (locInput.focus(), openLocDrop()); });
+    locClear.addEventListener('mousedown', e => { e.preventDefault(); locInput.value = ''; updateClear(); locInput.focus(); openLocDrop(); });
+    document.addEventListener('mousedown', e => { if (!locRow.contains(e.target) && !locListbox.contains(e.target)) closeLocDrop(); });
 
-    /* Chevron toggle */
-    locationChevron.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      locationListbox.classList.contains('open') ? closeDropdown() : (locationInput.focus(), openDropdown());
-    });
-
-    /* Clear button */
-    locationClear.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      locationInput.value = '';
-      updateClearBtn();
-      openDropdown();
-      locationInput.focus();
-    });
-
-    /* Click outside closes dropdown */
-    document.addEventListener('mousedown', (e) => {
-      if (!locationRow.contains(e.target) && !locationListbox.contains(e.target)) {
-        closeDropdown();
-      }
-    });
-
-    /* ─────────────────────────────────────────────────────
-       Recommendation logic
-    ───────────────────────────────────────────────────── */
-    function $(id) { return document.getElementById(id); }
-
-    function toNum(v) {
-      const s = (v || '').trim();
-      if (!s) return undefined;
-      const n = Number(s);
-      return Number.isFinite(n) ? n : undefined;
-    }
-    function toInt(v) { const n = toNum(v); return n === undefined ? undefined : Math.trunc(n); }
-    function toCuisineList(v) {
-      const s = (v || '').trim();
-      if (!s) return undefined;
-      return s.split(',').map(x => x.trim()).filter(Boolean);
+    /* ── cuisines datalist (from /cuisines endpoint) ────── */
+    async function loadCuisines() {
+      try {
+        const r = await fetch('/cuisines');
+        const list = await r.json();
+        const dl = $('cuisines-list');
+        list.forEach(c => { const opt = document.createElement('option'); opt.value = c; dl.appendChild(opt); });
+      } catch (_) { /* non-critical */ }
     }
 
-    function escapeHTML(str) {
-      const d = document.createElement('div');
-      d.textContent = str;
-      return d.innerHTML;
-    }
-
+    /* ── render result cards ────────────────────────────── */
     function starSVG() {
       return '<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>';
     }
 
     function renderResults(data) {
-      const section = $('results-section');
-      const countEl = $('result-count');
-      const summary = $('summary-box');
+      $('results-section').style.display = 'block';
+      $('summary-box').textContent = data.summary || '';
+      const recs = data.recommendations || [];
+      $('result-count').textContent = recs.length + ' found';
       const grid = $('results-grid');
-
-      section.style.display = 'block';
-      summary.textContent = data.summary || '';
       grid.innerHTML = '';
 
-      const recs = data.recommendations || [];
-      countEl.textContent = recs.length + ' found';
-
-      if (recs.length === 0) {
-        grid.innerHTML = `<div class="empty-state">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
-            </svg>
-            <p>No restaurants matched your preferences. Try broadening your filters.</p>
-          </div>`;
+      if (!recs.length) {
+        grid.innerHTML = '<div class="empty-state">No restaurants matched. Try broadening your filters.</div>';
         return;
       }
 
       recs.forEach((r, i) => {
         const card = document.createElement('div');
-        card.className = 'restaurant-card';
+        card.className = 'r-card';
         card.style.animationDelay = (i * 0.06) + 's';
         card.innerHTML = `
-            <div class="card-top">
-              <div class="card-name">${escapeHTML(r.name)}</div>
-              <div class="card-rating">${starSVG()} ${r.rating != null ? r.rating.toFixed(1) : '—'}</div>
+            <div class="r-top">
+              <div class="r-name">${escapeHTML(r.name)}</div>
+              <div class="r-rating">${starSVG()} ${r.rating != null ? Number(r.rating).toFixed(1) : '—'}</div>
             </div>
-            <div class="card-meta">
-              <span class="meta-pill">
+            <div class="r-meta">
+              <span class="r-pill">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                 ${escapeHTML(r.location || '—')}
               </span>
-              <span class="meta-pill">
+              <span class="r-pill">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                ${r.price_range != null ? '₹' + r.price_range.toLocaleString() : '—'}
+                ${r.price_range != null ? '₹' + Number(r.price_range).toLocaleString() : '—'}
               </span>
             </div>
-            ${r.cuisines ? `<div class="card-cuisines">${escapeHTML(r.cuisines)}</div>` : ''}
-            <div class="card-reason"><strong>Why this pick:</strong> ${escapeHTML(r.reason)}</div>
+            ${r.cuisines ? `<div class="r-cuisines">${escapeHTML(r.cuisines)}</div>` : ''}
+            <div class="r-reason"><strong>Why this pick:</strong> ${escapeHTML(r.reason || '')}</div>
           `;
         grid.appendChild(card);
       });
+
+      $('results-anchor').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
+    /* ── main fetch ─────────────────────────────────────── */
     async function run() {
       const btn = $('go');
       const status = $('status');
       btn.classList.add('loading');
       btn.disabled = true;
-      status.className = 'status-text';
-      status.textContent = 'Fetching recommendations…';
-      closeDropdown();
+      status.className = 'status';
+      status.textContent = 'Finding the best restaurants…';
+      closeLocDrop();
 
       try {
         const payload = {
-          location: locationInput.value.trim() || undefined,
+          location: locInput.value.trim() || undefined,
           min_rating: toNum($('min_rating').value),
           min_price: toInt($('min_price').value),
           max_price: toInt($('max_price').value),
-          preferred_cuisines: toCuisineList($('cuisines').value),
+          preferred_cuisines: toCuisines($('cuisines').value),
           limit: 5,
         };
 
@@ -1003,28 +1072,30 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
-        const data = await resp.json();
-        if (!resp.ok) throw new Error(data?.detail || `HTTP ${resp.status}`);
 
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data?.detail || 'Server error ' + resp.status);
         renderResults(data);
-        status.textContent = 'Done ✓';
-      } catch (e) {
-        status.textContent = `Error: ${e.message || e}`;
-        status.className = 'status-text error';
+        status.textContent = '✓ Done';
+
+      } catch (err) {
+        status.textContent = 'Error: ' + (err.message || err);
+        status.className = 'status err';
       } finally {
         btn.classList.remove('loading');
         btn.disabled = false;
       }
     }
 
-    /* Enter key in plain inputs triggers search */
+    /* Enter key in inputs triggers search */
     ['min_rating', 'min_price', 'max_price', 'cuisines'].forEach(id => {
-      document.getElementById(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') run(); });
+      $(id).addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
     });
     $('go').addEventListener('click', run);
 
-    /* Bootstrap */
+    /* ── bootstrap ──────────────────────────────────────── */
     loadLocations();
+    loadCuisines();
   </script>
 </body>
 

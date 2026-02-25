@@ -12,7 +12,7 @@ from .models import RecommendationsResponse, UserPreference
 from zomato_ai.phase3.groq_client import GroqLLMClient, load_groq_config_from_env
 from zomato_ai.phase3.orchestrator import recommend_with_groq
 from zomato_ai.phase3.models import LLMRecommendationResult
-from .repository import create_engine_for_url, fetch_unique_locations
+from .repository import create_engine_for_url, fetch_unique_locations, fetch_unique_cuisines
 from zomato_ai.phase4.events import log_recommendation_event
 from zomato_ai.phase5.pipeline import run_pipeline
 from zomato_ai.phase5.models import PipelineResponse
@@ -123,6 +123,18 @@ def create_app(db_url: str | None = None, engine: Engine | None = None) -> FastA
         restaurants table.  Used by the UI to populate the location dropdown.
         """
         return fetch_unique_locations(effective_engine)
+
+    @app.get(
+        "/cuisines",
+        response_model=list[str],
+        summary="Get all unique cuisine names from the dataset",
+    )
+    def get_cuisines() -> list[str]:
+        """
+        Returns a sorted list of every unique cuisine present in the
+        restaurants table.  Used by the UI to power the cuisines datalist.
+        """
+        return fetch_unique_cuisines(effective_engine)
 
     return app
 

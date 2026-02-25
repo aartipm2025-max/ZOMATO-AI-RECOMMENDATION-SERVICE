@@ -53,7 +53,7 @@ def test_ui_page_served():
 
     resp = client.get("/")
     assert resp.status_code == 200
-    assert "Restaurant Recommendations" in resp.text
+    assert "World's" in resp.text          # hero heading from redesign
     assert "/recommendations/pipeline" in resp.text
 
 

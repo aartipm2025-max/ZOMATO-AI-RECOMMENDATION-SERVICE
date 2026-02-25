@@ -74,3 +74,26 @@ def fetch_unique_locations(engine: Engine) -> List[str]:
             locations.add(cleaned)
 
     return sorted(locations, key=str.casefold)
+
+
+def fetch_unique_cuisines(engine: Engine) -> List[str]:
+    """
+    Return a sorted list of unique individual cuisine names found in the
+    restaurants table.  Each row may contain a comma-separated list of
+    cuisines; this function splits them, strips whitespace, deduplicates,
+    and returns a sorted result.
+    """
+    stmt = select(restaurants_table.c.cuisines)
+    with engine.connect() as conn:
+        rows = conn.execute(stmt).scalars().all()
+
+    cuisines: set[str] = set()
+    for raw in rows:
+        if raw is None:
+            continue
+        for part in str(raw).split(","):
+            cleaned = part.strip()
+            if cleaned:
+                cuisines.add(cleaned)
+
+    return sorted(cuisines, key=str.casefold)
