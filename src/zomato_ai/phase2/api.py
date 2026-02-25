@@ -109,7 +109,9 @@ def create_app(db_url: str | None = None, engine: Engine | None = None) -> FastA
     def get_recommendations_pipeline(preferences: UserPreference) -> PipelineResponse:
         try:
             return run_pipeline(engine=effective_engine, preferences=preferences)
-        except RuntimeError as e:
+        except HTTPException:
+            raise
+        except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
     @app.get(

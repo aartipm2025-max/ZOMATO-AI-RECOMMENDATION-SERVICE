@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Sequence
 
 from sqlalchemy.engine import Engine
@@ -12,6 +13,31 @@ from zomato_ai.phase4.events import log_recommendation_event
 
 from .models import PipelineRecommendation, PipelineResponse
 
+logger = logging.getLogger(__name__)
+
+
+def _heuristic_fallback(
+    candidates: Sequence[Restaurant], limit: int
+) -> PipelineResponse:
+    """Return top-N candidates by heuristic score when LLM is unavailable."""
+    recs = [
+        PipelineRecommendation(
+            id=r.id,
+            name=r.name,
+            location=r.location,
+            cuisines=r.cuisines,
+            price_range=r.price_range,
+            rating=r.rating,
+            score=r.score,
+            reason="Highly rated and matches your preferences.",
+        )
+        for r in candidates[:limit]
+    ]
+    return PipelineResponse(
+        summary=f"Top {len(recs)} restaurants based on ratings and your preferences.",
+        recommendations=recs,
+    )
+
 
 def run_pipeline(
     *,
@@ -20,12 +46,13 @@ def run_pipeline(
 ) -> PipelineResponse:
     """
     End-to-end pipeline:
-    User preferences → Filter candidates → Groq LLM chooses/explains → Response with restaurant details.
+    User preferences → Filter candidates → Groq LLM chooses/explains → Response.
+
+    Falls back to heuristic ranking if the LLM call fails or returns bad output.
     """
     try:
         config = load_groq_config_from_env()
     except RuntimeError:
-        # Let caller decide how to map to HTTP status.
         raise
 
     # Filter a larger candidate pool; LLM selects top N from it.
@@ -44,33 +71,54 @@ def run_pipeline(
         )
         return PipelineResponse(summary="No matches found.", recommendations=[])
 
-    client = GroqLLMClient(config)
-    llm_result = recommend_with_groq(
-        client=client,
-        preferences=preferences,
-        candidates=candidate_pool,
-        limit=preferences.limit,
-    )
-
-    # Join LLM-ranked ids back to restaurant objects.
-    by_id: dict[int, Restaurant] = {r.id: r for r in candidate_pool}
+    # ── Try Groq LLM ──────────────────────────────────────────────────────────
     joined: list[PipelineRecommendation] = []
-    for item in llm_result.recommendations:
-        r = by_id.get(item.id)
-        if not r:
-            continue
-        joined.append(
-            PipelineRecommendation(
-                id=r.id,
-                name=r.name,
-                location=r.location,
-                cuisines=r.cuisines,
-                price_range=r.price_range,
-                rating=r.rating,
-                score=r.score,
-                reason=item.reason,
-            )
+    summary = ""
+
+    try:
+        client = GroqLLMClient(config)
+        llm_result = recommend_with_groq(
+            client=client,
+            preferences=preferences,
+            candidates=candidate_pool,
+            limit=preferences.limit,
         )
+
+        # Join LLM-ranked ids back to restaurant objects.
+        by_id: dict[int, Restaurant] = {r.id: r for r in candidate_pool}
+        for item in llm_result.recommendations:
+            r = by_id.get(item.id)
+            if not r:
+                continue
+            joined.append(
+                PipelineRecommendation(
+                    id=r.id,
+                    name=r.name,
+                    location=r.location,
+                    cuisines=r.cuisines,
+                    price_range=r.price_range,
+                    rating=r.rating,
+                    score=r.score,
+                    reason=item.reason,
+                )
+            )
+        summary = llm_result.summary
+
+    except Exception as exc:
+        logger.warning("LLM call failed (%s); falling back to heuristic ranking.", exc)
+
+    # ── Fallback: use heuristic results if LLM returned nothing usable ────────
+    if not joined:
+        logger.info("No LLM results matched candidates — using heuristic fallback.")
+        fallback = _heuristic_fallback(candidate_pool, preferences.limit)
+        log_recommendation_event(
+            engine=engine,
+            endpoint="/recommendations/pipeline",
+            preferences=preferences.model_dump(),
+            candidate_count=len(candidate_pool),
+            returned_count=len(fallback.recommendations),
+        )
+        return fallback
 
     log_recommendation_event(
         engine=engine,
@@ -80,5 +128,4 @@ def run_pipeline(
         returned_count=len(joined),
     )
 
-    return PipelineResponse(summary=llm_result.summary, recommendations=joined)
-
+    return PipelineResponse(summary=summary, recommendations=joined)
